@@ -51,6 +51,9 @@ jobs:
           destination: binaries
 
   docker-build:
+    filters: # required since `test` has tag filters AND requires `build`
+      tags:
+        only: /^[\d].*/
     machine:
       image: ubuntu-1604:201903-01
       # docker_layer_caching: true
@@ -71,10 +74,10 @@ jobs:
           name: tag and push dockerhub
           command: |
             docker tag tcp-wait $dockerhub_repo:latest
-            docker tag tcp-wait $dockerhub_repo:circleci-${CIRCLE_SHA1}
+            docker tag tcp-wait $dockerhub_repo:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
 
             echo "$DOCKERHUB_PASS" | docker login --username $DOCKERHUB_USER --password-stdin
-            docker push $dockerhub_repo:circleci-${CIRCLE_SHA1}
+            docker push $dockerhub_repo:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
             docker push $dockerhub_repo:latest
 
       - run:
@@ -85,8 +88,8 @@ jobs:
             docker tag tcp-wait $github_repo:latest
             docker push $github_repo:latest
 
-            docker tag tcp-wait $github_repo:circleci-${CIRCLE_SHA1}
-            docker push $github_repo:circleci-${CIRCLE_SHA1}
+            docker tag tcp-wait $github_repo:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
+            docker push $github_repo:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
 
   # publish-github-release:
   #   docker:
@@ -114,3 +117,8 @@ workflows:
       - docker-build:
           requires:
             - package
+          filters:
+            tags:
+              only: /^[0-9].*/
+            branches:
+              ignore: /.*/
