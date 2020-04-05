@@ -93,21 +93,23 @@ tcp-wait
 
 # structure created with binaries in your local bin directory.
 $ tree
-.
 ├── Dockerfile
 ├── LICENSE
 ├── Makefile
 ├── README.md
 ├── bin
-│   ├── linux
-│   │   └── tcp-wait
-│   ├── mac
-│   │   └── tcp-wait
-│   └── tcp-wait
+│   ├── tcp-wait
+│   ├── tcp-wait.darwin.amd64
+│   ├── tcp-wait.linux.amd64
+│   └── tcp-wait.windows.amd64
 ├── go.mod
 ├── go.sum
 ├── main.go
-└── main_test.go
+├── main_test.go
+└── tmp
+    └── test-coverage
+        ├── coverage.html
+        └── coverage.out.
 
 
 # Binary should be imediately executable
