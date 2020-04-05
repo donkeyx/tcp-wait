@@ -15,7 +15,7 @@ Using docker:
 
 ```bash
 # simply run the docker run command and you will be good to go immediately
-$ docker run -hp donkeyx/tcp-wait -version
+$ docker run -it donkeyx/tcp-wait -version
 Unable to find image 'donkeyx/tcp-wait:latest' locally
 ...
 Version 'docker-build'
