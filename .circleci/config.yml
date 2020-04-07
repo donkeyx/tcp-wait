@@ -51,9 +51,6 @@ jobs:
           destination: binaries
 
   docker-build:
-    filters: # required since `test` has tag filters AND requires `build`
-      tags:
-        only: /^[\d].*/
     machine:
       image: ubuntu-1604:201903-01
       # docker_layer_caching: true
@@ -61,6 +58,7 @@ jobs:
       build_container: "build_container"
       dockerhub_repo: "donkeyx/tcp-wait"
       github_repo: "docker.pkg.github.com/donkeyx/tcp-wait/tcp-wait"
+      # git_hash: $(echo $CIRCLE_SHA1 | cut -c1-5)
 
     steps:
       - attach_workspace:
@@ -73,23 +71,27 @@ jobs:
       - run:
           name: tag and push dockerhub
           command: |
+            git_hash=$(echo $CIRCLE_SHA1 | cut -c1-8)
+            echo $git_hash
             docker tag tcp-wait $dockerhub_repo:latest
-            docker tag tcp-wait $dockerhub_repo:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
+            docker tag tcp-wait $dockerhub_repo:${CIRCLE_TAG}-${git_hash}
 
             echo "$DOCKERHUB_PASS" | docker login --username $DOCKERHUB_USER --password-stdin
-            docker push $dockerhub_repo:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
+            docker push $dockerhub_repo:${CIRCLE_TAG}-${git_hash}
             docker push $dockerhub_repo:latest
 
       - run:
           name: tag and push github
           command: |
+            git_hash=$(echo $CIRCLE_SHA1 | cut -c1-8)
+            echo $git_hash
             echo $GITHUB_TOKEN | docker login docker.pkg.github.com -u $GITHUB_USER --password-stdin
 
             docker tag tcp-wait $github_repo:latest
             docker push $github_repo:latest
 
-            docker tag tcp-wait $github_repo:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
-            docker push $github_repo:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
+            docker tag tcp-wait $github_repo:${CIRCLE_TAG}-${git_hash}
+            docker push $github_repo:${CIRCLE_TAG}-${git_hash}
 
   # publish-github-release:
   #   docker:
@@ -108,17 +110,27 @@ jobs:
 
 workflows:
   version: 2
-  build_and_test:
+  build-deploy:
     jobs:
-      - build-test
+      - build-test:
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /.*/
       - package:
           requires:
             - build-test
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
       - docker-build:
           requires:
             - package
           filters:
-            tags:
-              only: /^[0-9].*/
             branches:
               ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
