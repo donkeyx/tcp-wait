@@ -48,15 +48,15 @@ Usage of /Users/dbinney/go/bin/tcp-wait:
 ## Usage
 
 ```bash
-### simple
+### simple (success)
 $ ./bin/tcp-wait -hp github.com:80
 {"level":"info","msg":"services are ready!","services":["github.com:80"],"time":"2020-03-12T17:18:30+10:30"}
 
-### multiple hosts with timeout and text
+### multiple hosts with timeout(1sec) and text as the output
 $ ./bin/tcp-wait -hp github.com:443,google.com:443 -t 1 -o text
 INFO[2020-03-12T17:20:15+10:30] services are ready!  services="[github.com:443 google.com:443]"
 
-### multiple hosts with fail condition
+### multiple hosts with timeout(2sec) and fail condition on one host:port
 $ ./bin/tcp-wait -hp github.com:443,localhost:10000 -t 2
 {"level":"warning","msg":"tcp ping failed","tcp-host":"localhost:10000","time":"2020-03-12T17:26:16+10:30"}
 {"level":"warning","msg":"tcp ping failed","tcp-host":"localhost:10000","time":"2020-03-12T17:26:17+10:30"}
