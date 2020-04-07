@@ -74,24 +74,24 @@ jobs:
             git_hash=$(echo $CIRCLE_SHA1 | cut -c1-8)
             echo $git_hash
             docker tag tcp-wait $dockerhub_repo:latest
-            docker tag tcp-wait $dockerhub_repo:${CIRCLE_TAG}-${git_hash}
+            # docker tag tcp-wait $dockerhub_repo:${CIRCLE_TAG}-${git_hash}
+            docker tag tcp-wait $dockerhub_repo:${CIRCLE_TAG}
 
             echo "$DOCKERHUB_PASS" | docker login --username $DOCKERHUB_USER --password-stdin
-            docker push $dockerhub_repo:${CIRCLE_TAG}-${git_hash}
+            # docker push $dockerhub_repo:${CIRCLE_TAG}-${git_hash}
+            docker push $dockerhub_repo:${CIRCLE_TAG}
             docker push $dockerhub_repo:latest
 
-      - run:
-          name: tag and push github
-          command: |
-            git_hash=$(echo $CIRCLE_SHA1 | cut -c1-8)
-            echo $git_hash
-            echo $GITHUB_TOKEN | docker login docker.pkg.github.com -u $GITHUB_USER --password-stdin
-
-            docker tag tcp-wait $github_repo:latest
-            docker push $github_repo:latest
-
-            docker tag tcp-wait $github_repo:${CIRCLE_TAG}-${git_hash}
-            docker push $github_repo:${CIRCLE_TAG}-${git_hash}
+      # - run:
+      #     name: tag and push github
+      #     command: |
+      #       git_hash=$(echo $CIRCLE_SHA1 | cut -c1-8)
+      #       echo $git_hash
+      #       echo $GITHUB_TOKEN | docker login docker.pkg.github.com -u $GITHUB_USER --password-stdin
+      #       docker tag tcp-wait $github_repo:latest
+      #       docker push $github_repo:latest
+      #       docker tag tcp-wait $github_repo:${CIRCLE_TAG}-${git_hash}
+      #       docker push $github_repo:${CIRCLE_TAG}-${git_hash}
 
   # publish-github-release:
   #   docker:
