@@ -6,10 +6,7 @@ with a defined interval and die if the host:port does not become available.
 
 Feel free to contribute, as I will allow most merges as long as they don't drastically break the usage.
 
-## Running
-
-You can install this using go get and adding to your gopath. You can then use as you would any packages.
-If you want to use without needing the full path you can add your go path to your shell.
+## Quickstart
 
 Using docker:
 
