@@ -1,0 +1,8 @@
+steps:
+  - label: "Example Test"
+    command: echo "Hello!"
+  - label: "Another step"
+    command: env
+  - wait
+  - label: "multi line"
+    command: echo "next after wait"
