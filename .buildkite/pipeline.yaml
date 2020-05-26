@@ -1,8 +1,18 @@
 steps:
-  - label: "Example Test"
-    command: echo "Hello!"
+  - label: "Example Test1p"
+    command:
+      - "echo Hello"
+      - "sleep 1"
+  - label: "Example Test2p"
+    command:
+      - "echo Hello"
+      - "sleep 2"
+  - label: "Example Test3p"
+    command:
+      - "echo Hello"
+      - "sleep 3"
+  - wait
   - label: "Another step"
     command: env
-  - wait
   - label: "multi line"
     command: echo "next after wait"
