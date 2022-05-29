@@ -1,6 +1,6 @@
 module github.com/donkeyx/tcp-wait
 
-go 1.14
+go 1.17
 
 require (
 	github.com/kr/text v0.2.0 // indirect
@@ -10,4 +10,9 @@ require (
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
+)
+
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 )
