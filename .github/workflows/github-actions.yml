@@ -142,15 +142,18 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
+          registry: registry.hub.docker.com/donkeyx
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASS }}
 
 
       - name: Build and push docker image github
         run: | 
+          echo "registry.hub.docker.com/donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
+
           docker buildx build \
           --platform linux/amd64 \
-          -t "donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
+          -t "registry.hub.docker.com/donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
           --push \
           .
 
