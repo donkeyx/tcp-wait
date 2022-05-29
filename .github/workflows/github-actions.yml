@@ -74,7 +74,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: get deets 
-        run: 
+        run: |
           echo  ${{ env.REGISTRY }}; \
           echo ${{ steps.meta.outputs.tags }}; \
           env;
