@@ -48,7 +48,7 @@ jobs:
         id: vars
         shell: bash
         run: |
-          branch=$(echo ${GITHUB_REF#refs/heads/}| sed -e 's/\/_/g' )
+          branch=$(echo ${GITHUB_REF#refs/heads/}| tr "/" "_" )
           hash=${GITHUB_SHA::6}
           echo "::set-output name=branch::$branch"
           echo "::set-output name=sha_short::$hash"
