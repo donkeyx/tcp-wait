@@ -1,5 +1,5 @@
 # # multi stage build, yo!
-FROM golang:1.18
+FROM golang:1.18.2
 COPY . /app/
 WORKDIR /app
 RUN make deps build
