@@ -75,7 +75,7 @@ jobs:
 
       - name: get deets 
         run: 
-          echo  ${{ env.REGISTRY }} \
+          echo  ${{ env.REGISTRY }}; \
           echo ${{ steps.meta.outputs.tags }}; \
           env;
 
