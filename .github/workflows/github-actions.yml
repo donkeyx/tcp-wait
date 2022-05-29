@@ -145,7 +145,7 @@ jobs:
 
           docker buildx build \
           --platform linux/amd64 \
-          -t "registry.hub.docker.com/donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
+          -t "donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
           --push \
           .
 
