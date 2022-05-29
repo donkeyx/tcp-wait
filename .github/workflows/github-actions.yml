@@ -64,7 +64,7 @@ jobs:
               docker_tag=latest
             fi
             
-            docker_tag="$branch_$hash"
+            docker_tag="${branch}_${hash}"
           fi
 
           echo "branch: $branch"
