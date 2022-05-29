@@ -76,11 +76,11 @@ jobs:
           echo "::set-output name=docker_tag::$docker_tag"
           
 
-      - name: Another step
-        run: |
-          echo "Branch: ${{ steps.vars.outputs.git_ref }}"
-          echo "Sha: ${{ steps.vars.outputs.sha_short }}"
-          echo "docker tag: ${{ steps.vars.outputs.docker_tag }}"
+      # - name: Another step
+      #   run: |
+      #     echo "Branch: ${{ steps.vars.outputs.git_ref }}"
+      #     echo "Sha: ${{ steps.vars.outputs.sha_short }}"
+      #     echo "docker tag: ${{ steps.vars.outputs.docker_tag }}"
 
 
 
@@ -107,25 +107,25 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      # # Extract metadata (tags, labels) for Docker
+      # # https://github.com/docker/metadata-action
+      # - name: Extract Docker metadata
+      #   id: meta
+      #   uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      #   with:
+      #     images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: get deets
-        shell: bash
-        run: |
-          echo "registry : ${{ env.REGISTRY }}" \
-          echo "tags: ${{ steps.meta.outputs.tags }}" \
-          echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
+      # - name: get deets
+      #   shell: bash
+      #   run: |
+      #     echo "registry : ${{ env.REGISTRY }}" \
+      #     echo "tags: ${{ steps.meta.outputs.tags }}" \
+      #     echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
 
 
       # --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
 
-      - name: Build and push docker image
+      - name: Build and push docker image github
         run: | 
           docker buildx build \
           --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
@@ -133,6 +133,24 @@ jobs:
           --push \
           .
 
+
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+        with:
+          registry: "donkeyx/tcp-wait"
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PASS }}
+
+
+      - name: Build and push docker image github
+        run: | 
+          docker buildx build \
+          --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
+          -t "donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
+          --push \
+          .
 
 
       # - name: Build and push Docker image
