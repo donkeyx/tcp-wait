@@ -44,12 +44,14 @@ jobs:
 
 
 
-      - name: Declare some variables
+      - name: Capture build vars
         id: vars
         shell: bash
         run: |
-          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          branch=$(echo ${GITHUB_REF#refs/heads/}| sed -e 's/\/_/g' )
+          hash=${GITHUB_SHA::6}
+          echo "::set-output name=branch::$branch ##[set-output name=branch;]$branch"
+          echo "::set-output name=sha_short::$hash"
 
       - name: Another step
         run: |
