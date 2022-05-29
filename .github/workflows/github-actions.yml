@@ -44,16 +44,33 @@ jobs:
 
 
 
+      - name: Declare some variables
+        id: vars
+        shell: bash
+        run: |
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Another step
+        run: |
+          echo "Branch: ${{ steps.vars.outputs.branch }}"
+          echo "Sha: ${{ steps.vars.outputs.sha_short }}"
 
 
 
-      # Install the cosign tool except on PR
-      # https://github.com/sigstore/cosign-installer
-      - name: Install cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@d6a3abf1bdea83574e28d40543793018b6035605
-        with:
-          cosign-release: 'v1.7.1'
+
+
+
+      # # Install the cosign tool except on PR
+      # # https://github.com/sigstore/cosign-installer
+      # - name: Install cosign
+      #   if: github.event_name != 'pull_request'
+      #   uses: sigstore/cosign-installer@d6a3abf1bdea83574e28d40543793018b6035605
+      #   with:
+      #     cosign-release: 'v1.7.1'
+
+
+
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
@@ -75,8 +92,10 @@ jobs:
 
       - name: get deets 
         run: |
-          echo  ${{ env.REGISTRY }}; \
-          echo ${{ steps.meta.outputs.tags }}; \
+          echo "registry : ${{ env.REGISTRY }}\n"\
+          echo "tags: "${{ steps.meta.outputs.tags }}\n"; \
+          echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:"
+          echo "\n\n---env ---"
           env;
 
 
@@ -85,7 +104,9 @@ jobs:
       #   run: | 
       #     docker buildx build \
       #     --platform linux/amd67,linux/arm64 \
-      #     -t ${{ steps.meta.outputs.tags }}
+      #     -t ${{ steps.meta.outputs.tags }} \
+      #     --push \
+      #     .
 
 
 
