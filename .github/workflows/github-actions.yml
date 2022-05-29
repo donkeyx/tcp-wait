@@ -67,6 +67,9 @@ jobs:
             docker_tag="$branch_$hash"
           fi
 
+          echo "branch: $branch"
+          echo "hash: $hash"
+          echo "dockertag: $docker_tag"
 
           echo "::set-output name=branch::$branch"
           echo "::set-output name=sha_short::$hash"
