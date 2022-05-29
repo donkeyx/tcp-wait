@@ -145,6 +145,11 @@ jobs:
           registry: registry.hub.docker.com/donkeyx
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASS }}
+        env: # Set the secret in the env
+          REGISTRY: registry.hub.docker.com/donkeyx
+          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USER }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_PASS }}
+
 
 
       - name: Build and push docker image github
