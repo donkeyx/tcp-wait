@@ -104,8 +104,8 @@ jobs:
           # registry: registry.hub.docker.com/donkeyx
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASS }}
-        env: # Set the secret in the env
-          REGISTRY: ""
+        # env: # Set the secret in the env
+        #   REGISTRY: ""
 
 
 
