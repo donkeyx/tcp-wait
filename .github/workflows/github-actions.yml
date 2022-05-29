@@ -129,7 +129,7 @@ jobs:
       # - name: Build and push docker image
       #   run: | 
       #     docker buildx build \
-      #     --platform linux/amd67,linux/arm64 \
+      #     --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
       #     -t ${{ steps.meta.outputs.tags }} \
       #     --push \
       #     .
