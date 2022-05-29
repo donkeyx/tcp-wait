@@ -48,37 +48,37 @@ jobs:
         id: vars
         shell: bash
         run: |
-          branch=$(echo ${GITHUB_REF#refs/heads/}| tr "/" "_" )
+          git_ref=$(echo ${GITHUB_REF#refs/heads/}| tr "/" "-" )
           hash=${GITHUB_SHA::6}
 
           if [ "$GITHUB_REF_TYPE" == "tag" ]; then
             echo "processing tag"
-            docker_tag="$branch"
+            docker_tag="$git_ref"
           fi
 
           if [ "$GITHUB_REF_TYPE" == "branch" ]; then
             echo "processing branch"
 
-            if [ "$branch" == "master" ]; then
+            if [ "$git_ref" == "master" ]; then
               echo "match latest"
               docker_tag=latest
             fi
             
-            docker_tag="${branch}_${hash}"
+            docker_tag="${git_ref}_${hash}"
           fi
 
-          echo "branch: $branch"
+          echo "branch: $git_ref"
           echo "hash: $hash"
           echo "dockertag: $docker_tag"
 
-          echo "::set-output name=branch::$branch"
+          echo "::set-output name=git_ref::$git_ref"
           echo "::set-output name=sha_short::$hash"
           echo "::set-output name=docker_tag::$docker_tag"
           
 
       - name: Another step
         run: |
-          echo "Branch: ${{ steps.vars.outputs.branch }}"
+          echo "Branch: ${{ steps.vars.outputs.git_ref }}"
           echo "Sha: ${{ steps.vars.outputs.sha_short }}"
           echo "docker tag: ${{ steps.vars.outputs.docker_tag }}"
 
