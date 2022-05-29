@@ -50,7 +50,7 @@ jobs:
         run: |
           branch=$(echo ${GITHUB_REF#refs/heads/}| sed -e 's/\/_/g' )
           hash=${GITHUB_SHA::6}
-          echo "::set-output name=branch::$branch ##[set-output name=branch;]$branch"
+          echo "::set-output name=branch::$branch"
           echo "::set-output name=sha_short::$hash"
 
       - name: Another step
