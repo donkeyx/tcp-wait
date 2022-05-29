@@ -141,7 +141,10 @@ jobs:
 
       - name: Build and push docker image github
         run: | 
-          echo "registry.hub.docker.com/donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
+          echo ${{ env.IMAGE_NAME }}
+          echo "donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
+
+          "registry.hub.docker.com/donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
 
           docker buildx build \
           --platform linux/amd64 \
