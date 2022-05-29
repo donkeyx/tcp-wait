@@ -101,11 +101,11 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
-          registry: registry.hub.docker.com/donkeyx
+          # registry: registry.hub.docker.com/donkeyx
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASS }}
-        # env: # Set the secret in the env
-        #   REGISTRY: registry.hub.docker.com/donkeyx
+        env: # Set the secret in the env
+          REGISTRY: registry.hub.docker.com/donkeyx
 
 
 
