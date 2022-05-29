@@ -22,6 +22,7 @@ env:
 
 jobs:
   build:
+    environment: deployment # this gets the secrets for deployments
 
     runs-on: ubuntu-latest
     permissions:
