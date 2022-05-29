@@ -99,7 +99,7 @@ jobs:
       - name: get deets 
         run: |
           echo "registry : ${{ env.REGISTRY }}\n" \
-          echo "tags: "${{ steps.meta.outputs.tags }}\n" \
+          echo "tags: ${{ steps.meta.outputs.tags }}\n" \
           echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
           echo "\n\n---env ---"
           env;
