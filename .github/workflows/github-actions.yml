@@ -76,44 +76,44 @@ jobs:
           echo "::set-output name=sha_short::$hash"
           echo "::set-output name=docker_tag::$docker_tag"
           
-      # ################################
-      # push docker images (dockerhub/github)
-      # ################################ 
-      - name: Log into registry (dockerhub)
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USER }}
-          password: ${{ secrets.DOCKERHUB_PASS }}
-          logout: true
+      # # ################################
+      # # push docker images (dockerhub/github)
+      # # ################################ 
+      # - name: Log into registry (dockerhub)
+      #   if: github.event_name != 'pull_request'
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USER }}
+      #     password: ${{ secrets.DOCKERHUB_PASS }}
+      #     logout: true
 
 
-      - name: Build and push docker image (dockerhub)
-        run: | 
-          docker buildx build \
-          --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
-          -t "donkeyx/tcp-wait:${{ steps.vars.outputs.docker_tag }}" \
-          --push \
-          .
+      # - name: Build and push docker image (dockerhub)
+      #   run: | 
+      #     docker buildx build \
+      #     --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
+      #     -t "donkeyx/tcp-wait:${{ steps.vars.outputs.docker_tag }}" \
+      #     --push \
+      #     .
 
 
-      - name: Log into registry (github)
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          logout: true
+      # - name: Log into registry (github)
+      #   if: github.event_name != 'pull_request'
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+      #     logout: true
 
 
-      - name: Build and push docker image (github)
-        run: | 
-          docker buildx build \
-          --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
-          -t "ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
-          --push \
-          .
+      # - name: Build and push docker image (github)
+      #   run: | 
+      #     docker buildx build \
+      #     --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
+      #     -t "ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
+      #     --push \
+      #     .
 
 
       # ################################
@@ -124,13 +124,13 @@ jobs:
           make build-all
 
 
-      - name: Create GitHub release
-        uses: Roang-zero1/github-upload-release-artifacts-action@master
+      - name: Release with Notes
+        uses: softprops/action-gh-release@v1
         with:
-          args:
-          - ./bin
+          files: app/build/outputs/apk/release/app-release-unsigned.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       # - name: Create Draft Release
       #   uses: actions/create-release@v1
