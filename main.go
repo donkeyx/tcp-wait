@@ -51,7 +51,7 @@ func waitForServices(services []string, timeOut time.Duration) error {
 			go func(s string) {
 				defer wg.Done()
 				for {
-					_, err := net.Dial("tcp", s)
+					_, err := net.DialTimeout("tcp", s, 1*time.Second)
 					if err == nil {
 						return
 					}
