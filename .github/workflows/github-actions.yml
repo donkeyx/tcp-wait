@@ -120,6 +120,7 @@ jobs:
       # create release and push assets 
       # ################################ 
       - name: Build go binaries
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           make build-all
 
@@ -128,7 +129,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: bin/
+          files: bin/*
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
