@@ -78,25 +78,6 @@ jobs:
           
 
 
-
-
-      # # Extract metadata (tags, labels) for Docker
-      # # https://github.com/docker/metadata-action
-      # - name: Extract Docker metadata
-      #   id: meta
-      #   uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-      #   with:
-      #     images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      # - name: get deets
-      #   shell: bash
-      #   run: |
-      #     echo "registry : ${{ env.REGISTRY }}" \
-      #     echo "tags: ${{ steps.meta.outputs.tags }}" \
-      #     echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
-
-
-
       - name: Log into registry (dockerhub)
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
@@ -115,8 +96,6 @@ jobs:
           .
 
 
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
       - name: Log into registry (github)
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
@@ -136,41 +115,27 @@ jobs:
           .
 
 
-      # - name: Build and push Docker image
-      #   id: build-and-push
-      #   uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
-      #   with:
-      #     context: .
-      #     push: ${{ github.event_name != 'pull_request' }}
-      #     tags: ${{ steps.meta.outputs.tags }}
-      #     labels: ${{ steps.meta.outputs.labels }}
+      # ################################
+      # create release and push assets 
+      # ################################ 
+      - name: Build go binaries
+        run: make build-all
 
-      # # Sign the resulting Docker image digest except on PRs.
-      # # This will only write to the public Rekor transparency log when the Docker
-      # # repository is public to avoid leaking data.  If you would like to publish
-      # # transparency data even for private images, pass --force to cosign below.
-      # # https://github.com/sigstore/cosign
-      # - name: Sign the published Docker image
-      #   if: ${{ github.event_name != 'pull_request' }}
-      #   env:
-      #     COSIGN_EXPERIMENTAL: "true"
-      #   # This step uses the identity token to provision an ephemeral certificate
-      #   # against the sigstore community Fulcio instance.
-      #   run: cosign sign ${{ steps.meta.outputs.tags }}@${{ steps.build-and-push.outputs.digest }}
+      - name: Create Draft Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.vars.outputs.git_ref }}
+          release_name: ${{ steps.vars.outputs.git_ref }}
+          draft: true
+          prerelease: false
 
+      - uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin
+          asset_content_type: application/zip
 
-
-      # - name: Create Release
-      #   id: create_release
-      #   uses: actions/create-release@v3
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-      #   with:
-      #     tag_name: ${{ github.ref }}
-      #     release_name: Release ${{ github.ref }}
-      #     body: |
-      #       Changes in this Release
-      #       - First Change
-      #       - Second Change
-      #     draft: false
-      #     prerelease: false
