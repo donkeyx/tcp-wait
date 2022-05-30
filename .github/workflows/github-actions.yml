@@ -106,18 +106,6 @@ jobs:
           logout: true
 
 
-
-
-
-      # # --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
-
-      # # --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
-      # - name: Login to Dockerhub Package Registry
-      #   run: echo ${{ secrets.DOCKERHUB_PASS }} | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin
-
-      #   # run: echo "${{ secrets.DOCKER_PASS }}" | docker login docker.pkg.github.com -u "${{ secrets.DOCKER_USER }}" --password-stdin
-
-
       - name: Build and push docker image (dockerhub)
         run: | 
           docker buildx build \
@@ -139,7 +127,7 @@ jobs:
           logout: true
 
 
-      - name: Build and push docker image github
+      - name: Build and push docker image (github)
         run: | 
           docker buildx build \
           --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
