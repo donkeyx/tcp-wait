@@ -123,7 +123,9 @@ jobs:
           echo "${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
 
           # -t "${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
-
+          
+          echo "image naem: ${{ env.IMAGE_NAME }}"
+          echo "image tag: ${{ steps.vars.outputs.docker_tag }}"
 
           docker buildx build \
           --platform linux/amd64 \
