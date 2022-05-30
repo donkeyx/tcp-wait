@@ -122,10 +122,12 @@ jobs:
         run: | 
           echo "${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
 
+          # -t "${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
+
 
           docker buildx build \
           --platform linux/amd64 \
-          -t "${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
+          -t "donkeyx/tcp-wait:test-tagging-github" \
           --push \
           .
 
