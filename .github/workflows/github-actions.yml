@@ -120,16 +120,11 @@ jobs:
 
       - name: Build and push docker image (dockerhub)
         run: | 
-          echo "${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
 
-          # -t "${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
-          
-          echo "image naem: ${{ env.IMAGE_NAME }}"
-          echo "image tag: ${{ steps.vars.outputs.docker_tag }}"
 
           docker buildx build \
           --platform linux/amd64 \
-          -t "donkeyx/tcp-wait:test-tagging-github" \
+          -t "donkeyx/tcp-wait:${{ steps.vars.outputs.docker_tag }}" \
           --push \
           .
 
