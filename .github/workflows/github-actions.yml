@@ -144,11 +144,14 @@ jobs:
           echo ${{ env.IMAGE_NAME }}
           echo "donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
 
-          "registry.hub.docker.com/donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
+          echo "registry.hub.docker.com/donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
+
+
+          # -t "donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
 
           docker buildx build \
           --platform linux/amd64 \
-          -t "donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
+          -t "donkeyx/tcp-wait:test-container" \
           --push \
           .
 
