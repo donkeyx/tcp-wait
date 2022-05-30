@@ -120,7 +120,8 @@ jobs:
       # create release and push assets 
       # ################################ 
       - name: Build go binaries
-        run: make build-all
+        run: |
+          make build-all
 
 
       - name: Create GitHub release
