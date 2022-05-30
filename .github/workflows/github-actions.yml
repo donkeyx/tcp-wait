@@ -120,9 +120,12 @@ jobs:
 
       - name: Build and push docker image github
         run: | 
+          echo "${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
+
+
           docker buildx build \
           --platform linux/amd64 \
-          -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
+          -t "${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
           --push \
           .
 
@@ -141,17 +144,11 @@ jobs:
 
       - name: Build and push docker image github
         run: | 
-          echo ${{ env.IMAGE_NAME }}
-          echo "donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
-
           echo "registry.hub.docker.com/donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
-
-
-          # -t "donkeyx/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
 
           docker buildx build \
           --platform linux/amd64 \
-          -t "donkeyx/tcp-wait:test-container" \
+          -t "ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
           --push \
           .
 
