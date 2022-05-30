@@ -118,7 +118,7 @@ jobs:
       #   # run: echo "${{ secrets.DOCKER_PASS }}" | docker login docker.pkg.github.com -u "${{ secrets.DOCKER_USER }}" --password-stdin
 
 
-      - name: Build and push docker image github
+      - name: Build and push docker image (dockerhub)
         run: | 
           echo "${{ secrets.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}"
 
