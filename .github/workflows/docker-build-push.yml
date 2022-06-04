@@ -38,7 +38,7 @@ jobs:
         id: vars
         shell: bash
         run: |
-          git_ref=$(echo ${GITHUB_REF#refs/heads/}| tr "/" "-" )
+          git_ref=$(echo ${GITHUB_REF#refs/*/}| tr "/" "-" )
           hash=${GITHUB_SHA::6}
 
           if [ "$GITHUB_REF_TYPE" == "tag" ]; then
