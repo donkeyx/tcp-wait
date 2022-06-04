@@ -20,9 +20,7 @@ test:
 clean:
 	go clean
 	find ./bin/ -type f | grep -v keep | xargs rm
-# run:
-# 	$(GOBUILD) -o $(BINARY_NAME) -v ./...
-# 	./$(BINARY_NAME)
+
 deps:
 	go get .
 
@@ -36,7 +34,6 @@ build-all:
 	$(info    build_date is $(BUILD_DATE))
 	$(info    ld-flags is $(BUILD_FLAGS))
 
-	CGO_ENABLED=0 $(BUILD_FLAGS) -o bin/$(BINARY_NAME) -v
 	CGO_ENABLED=0 GOARCH=386   GOOS=windows  $(BUILD_FLAGS) -o bin/$(BINARY_NAME).windows.amd64 -v
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux  $(BUILD_FLAGS) -o bin/$(BINARY_NAME).linux.amd64 -v
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin  $(BUILD_FLAGS) -o bin/$(BINARY_NAME).darwin.amd64 -v
