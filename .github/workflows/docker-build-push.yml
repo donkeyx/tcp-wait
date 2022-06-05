@@ -25,14 +25,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # for multi architecture builds arm/x86
-      - name: Setup qumu runner
-        uses: docker/setup-qemu-action@v1
-
-      - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@v1
-
-
 
       - name: Capture build vars
         id: vars
@@ -70,6 +62,13 @@ jobs:
           echo "::set-output name=docker_tag::$docker_tag"
           echo "::set-output name=latest_tag::$latest_tag"
           
+      # for multi architecture builds arm/x86
+      - name: Setup qumu runner
+        uses: docker/setup-qemu-action@v1
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v1
+
       # ################################
       # push docker images (dockerhub/github)
       # ################################ 
