@@ -38,7 +38,7 @@ jobs:
             docker_tag="$git_ref"
 
             echo "docker tag string latest"
-            latest_tag=" -t donkeyx/tcp-wait:latest"
+            latest_tag=" -t \donkeyx/tcp-wait:latest"
 
           fi
 
@@ -87,7 +87,7 @@ jobs:
           docker buildx build \
           --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
           -t "donkeyx/tcp-wait:${{ steps.vars.outputs.docker_tag }}" \
-          ${{ steps.vars.outputs.latest_tag }}" \
+          ${{ steps.vars.outputs.latest_tag }} \
           --push \
           .
 
@@ -107,6 +107,6 @@ jobs:
           docker buildx build \
           --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 \
           -t "ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.docker_tag }}" \
-          ${{ steps.vars.outputs.latest_tag }}" \
+          ${{ steps.vars.outputs.latest_tag }} \
           --push \
           .
