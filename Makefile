@@ -1,4 +1,3 @@
-
 # Go parameters
 BINARY_PATH = ./bin/linux/
 BINARY_NAME = tcp-wait
@@ -15,7 +14,7 @@ build:
 	# CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o tcp-wait .
 test:
 	go test
-	
+
 	mkdir -p tmp/test-coverage
 	go test -coverprofile=tmp/test-coverage/coverage.out
 	go tool cover -html=tmp/test-coverage/coverage.out -o ./tmp/test-coverage/coverage.html
