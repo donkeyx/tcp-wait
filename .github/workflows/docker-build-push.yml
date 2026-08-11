@@ -34,7 +34,7 @@ jobs:
 
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ env.GHCR_IMAGE }}
@@ -80,7 +80,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: ${{ steps.platforms.outputs.platforms }}
@@ -95,7 +95,7 @@ jobs:
       - name: Update Docker Hub README
         if: github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != ''
         continue-on-error: true
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
