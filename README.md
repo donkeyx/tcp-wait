@@ -1,6 +1,20 @@
 # tcp-wait
 
-Small tool to wait on stuff being up before you start the real process. Started life as a container pre-start helper; now it’s also an importable Go package, and has a watch mode for those “is postgres back yet?” upgrade windows.
+```
+╭──────────────────────────────────────╮
+│   🐴 DonkeyX's tcp-wait              │
+╰──────────────────────────────────────╯
+
+        //\\
+       (/oo\)   .--------.
+       (____)  | WAIT... |
+        /||\   '--------'
+       //||\\   📡 ping / ready / blip
+      ^^ ^^ ^^
+   "Is postgres back yet?"
+```
+
+Small tool to wait on stuff being up before you start the real process. Started life as a container pre-start helper; now it’s also an importable Go package, and has a watch mode for those upgrade / firewall blips.
 
 Works as:
 
@@ -11,6 +25,8 @@ Works as:
 | ghcr | `ghcr.io/donkeyx/tcp-wait` |
 | github | https://github.com/donkeyx/tcp-wait |
 | docs | https://pkg.go.dev/github.com/donkeyx/tcp-wait/v2 |
+
+Same donkey stable as [cluster-utils-api](https://github.com/donkeyx/cluster-utils-api) / [cluster-utils](https://github.com/donkeyx/cluster-utils) — this one’s the “wait until the other thing is actually up” bit.
 
 ## What it can wait on
 
@@ -31,7 +47,7 @@ TCP alone lies sometimes — redis can still be `LOADING`, postgres can accept s
 This is **v2** (library + probes + watch). Module path has the `/v2` suffix — that’s normal Go for majors.
 
 ```bash
-# docker (image name unchanged)
+# docker
 docker run --rm donkeyx/tcp-wait:latest -version
 docker run --rm ghcr.io/donkeyx/tcp-wait:latest -version
 
@@ -184,12 +200,11 @@ func main() {
 
 TCP-only shortcut: `tcpwait.WaitTCP(ctx, []string{"db:5432", "redis:6379"})`.
 
-Docs on [pkg.go.dev](https://pkg.go.dev/github.com/donkeyx/tcp-wait/v2) after you install a tagged version (`go doc .` works locally either way).
+Docs on [pkg.go.dev](https://pkg.go.dev/github.com/donkeyx/tcp-wait/v2) (`go doc .` works locally either way).
 
 ## Develop
 
 Needs Go 1.26+.
-
 
 ```bash
 go test -race ./...
@@ -197,19 +212,34 @@ go build -o bin/tcp-wait ./cmd/tcp-wait
 
 make test
 make build
+make docker-build   # local image tcp-wait:local
 ```
 
-Releases are **GoReleaser** on `v*` tags — multi-arch binaries plus images on Docker Hub (`donkeyx/tcp-wait`) and GHCR (`ghcr.io/donkeyx/tcp-wait`).
+### CI / release (same shape as cluster-utils-api)
+
+| Workflow | When | What |
+|----------|------|------|
+| **CI** | PR / master | test, build, smoke, goreleaser check |
+| **Docker** | PR / master | PR = amd64 build only; push = multi-arch + GHA cache → Hub/GHCR |
+| **Release** | `v*` tag | GoReleaser binaries + multi-arch images + Hub README sync |
+| **CodeQL** | PR / master / weekly | scan |
+
+Docker Hub login (release + docker workflows), preferred names matching the API repo:
+
+| Name | Where | Value |
+|------|--------|--------|
+| `DOCKERHUB_USERNAME` | environment **var** | e.g. `donkeyx` |
+| `DOCKERHUB_TOKEN` | environment **secret** | Hub access token |
+
+Still accepts the older `DOCKERHUB_USER` / `DOCKERHUB_PASS` secrets if that’s what’s already on `deployment`.
 
 ```bash
 goreleaser check
-make snapshot   # needs docker + goreleaser installed
+make snapshot   # needs docker + goreleaser
 
-git tag v2.0.0
-git push origin v2.0.0
+git tag v2.0.1
+git push origin v2.0.1
 ```
-
-Needs `DOCKERHUB_USER` / `DOCKERHUB_PASS` on the `deployment` environment for Hub; GHCR uses the default `GITHUB_TOKEN`.
 
 ## License
 
