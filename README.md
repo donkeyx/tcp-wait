@@ -224,16 +224,16 @@ make docker-build   # local image tcp-wait:local
 | **Release** | `v*` tag | GoReleaser binaries + multi-arch images + Hub README sync |
 | **CodeQL** | PR / master / weekly | scan |
 
-Docker Hub login (release + docker workflows), preferred names matching the API repo:
+Docker Hub auth matches **cluster-utils-api** (no `USER`/`PASS` leftovers):
 
-| Name | Where | Value |
-|------|--------|--------|
-| `DOCKERHUB_USERNAME` | environment **var** on `deployment` | e.g. `donkeyx` |
-| `DOCKERHUB_TOKEN` | environment **secret** | Hub access token (Read/Write) |
+| Name | Type | Environments |
+|------|------|----------------|
+| `DOCKERHUB_USERNAME` | **variable** | `ci` (docker workflow) + `deployment` (release) |
+| `DOCKERHUB_TOKEN` | **secret** | same — Hub access token (Read/Write) |
 
-Still accepts older `DOCKERHUB_USER` / `DOCKERHUB_PASS` if that’s what’s already on `deployment`.
+Same values as the API repo is fine. Without `DOCKERHUB_USERNAME` set, Hub login is skipped (GHCR still works).
 
-Hub **image push** can work while **README sync** returns 403 — that needs a token allowed to update the repo description (or just ignore it; images still publish).
+Hub **image push** can work while **README sync** returns 403 — token needs description rights, or ignore it; images still publish.
 
 ```bash
 goreleaser check
