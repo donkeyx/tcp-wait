@@ -73,8 +73,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Description API can 403 even when docker push works; don't fail the release.
       - name: Update Docker Hub README
         if: vars.DOCKERHUB_USERNAME != ''
+        continue-on-error: true
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
@@ -84,6 +86,7 @@ jobs:
 
       - name: Update Docker Hub README (legacy secrets)
         if: vars.DOCKERHUB_USERNAME == ''
+        continue-on-error: true
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKERHUB_USER }}

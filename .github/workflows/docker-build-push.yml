@@ -104,8 +104,11 @@ jobs:
           provenance: false
           sbom: false
 
+      # Hub description API is pickier than docker push; don't fail the whole
+      # image job if the token can push but not PATCH the repo description.
       - name: Update Docker Hub README
         if: github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != ''
+        continue-on-error: true
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
@@ -115,6 +118,7 @@ jobs:
 
       - name: Update Docker Hub README (legacy secrets)
         if: github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME == ''
+        continue-on-error: true
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKERHUB_USER }}

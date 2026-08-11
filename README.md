@@ -228,10 +228,12 @@ Docker Hub login (release + docker workflows), preferred names matching the API 
 
 | Name | Where | Value |
 |------|--------|--------|
-| `DOCKERHUB_USERNAME` | environment **var** | e.g. `donkeyx` |
-| `DOCKERHUB_TOKEN` | environment **secret** | Hub access token |
+| `DOCKERHUB_USERNAME` | environment **var** on `deployment` | e.g. `donkeyx` |
+| `DOCKERHUB_TOKEN` | environment **secret** | Hub access token (Read/Write) |
 
-Still accepts the older `DOCKERHUB_USER` / `DOCKERHUB_PASS` secrets if that’s what’s already on `deployment`.
+Still accepts older `DOCKERHUB_USER` / `DOCKERHUB_PASS` if that’s what’s already on `deployment`.
+
+Hub **image push** can work while **README sync** returns 403 — that needs a token allowed to update the repo description (or just ignore it; images still publish).
 
 ```bash
 goreleaser check
