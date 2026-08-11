@@ -40,8 +40,7 @@ Same donkey stable as [cluster-utils-api](https://github.com/donkeyx/cluster-uti
 
 TCP alone lies sometimes — redis can still be `LOADING`, postgres can accept sockets while it’s not ready. The redis/postgres checks speak just enough protocol that you don’t need `go-redis` / `pgx` hanging off this thing.
 
-**License is GPL-3.0.** If you import the library, that has the usual GPL implications for your binary. Fine for my use; just don’t be surprised.
-
+**License is MIT** — use it however you like; keep the copyright notice.
 ## Install
 
 This is **v2** (library + probes + watch). Module path has the `/v2` suffix — that’s normal Go for majors.
@@ -245,4 +244,4 @@ git push origin v2.0.1
 
 ## License
 
-GPL-3.0 — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

@@ -75,7 +75,7 @@ dockers_v2:
       org.opencontainers.image.title: tcp-wait
       org.opencontainers.image.description: Wait for network endpoints (tcp/http/redis/postgres/file) with optional watch mode
       org.opencontainers.image.source: https://github.com/donkeyx/tcp-wait
-      org.opencontainers.image.licenses: GPL-3.0
+      org.opencontainers.image.licenses: MIT
       org.opencontainers.image.vendor: donkeyx
 
 snapshot:
