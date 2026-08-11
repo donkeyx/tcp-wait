@@ -183,6 +183,9 @@ Docs on [pkg.go.dev](https://pkg.go.dev/github.com/donkeyx/tcp-wait/v2) after yo
 
 ## Develop
 
+Needs Go 1.26+.
+
+
 ```bash
 go test -race ./...
 go build -o bin/tcp-wait ./cmd/tcp-wait
