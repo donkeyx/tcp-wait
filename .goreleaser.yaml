@@ -41,20 +41,15 @@ archives:
 checksum:
   name_template: checksums.txt
 
+# Prefer GitHub's notes (since previous tag) over dumping the whole git log.
 changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
-      - "^chore:"
-      - "^ci:"
-      - Merge pull request
-      - Merge branch
+  use: github-native
 
 release:
   draft: false
   prerelease: auto
+  # Big majors: edit the release body after publish if needed (auto notes still help for patches).
+  mode: replace
 
 # Multi-arch images via buildx (pushed on publish; snapshot builds load per-arch locally).
 dockers_v2:
