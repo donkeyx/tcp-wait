@@ -7,6 +7,11 @@ Works as:
 - **CLI** — `tcp-wait` in Docker / k8s / scripts
 - **Library** — `import "github.com/donkeyx/tcp-wait/v2"`
 
+| dockerhub | https://hub.docker.com/r/donkeyx/tcp-wait |
+| ghcr | `ghcr.io/donkeyx/tcp-wait` |
+| github | https://github.com/donkeyx/tcp-wait |
+| docs | https://pkg.go.dev/github.com/donkeyx/tcp-wait/v2 |
+
 ## What it can wait on
 
 | Kind | Ready when |
