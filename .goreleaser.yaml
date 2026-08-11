@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+
+project_name: tcp-wait
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: tcp-wait
+    main: ./cmd/tcp-wait
+    binary: tcp-wait
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w -X main.Version={{.Version}} -X main.GitHash={{.ShortCommit}}
+
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+      - Merge pull request
+      - Merge branch
+
+release:
+  draft: false
+  prerelease: auto
+
+# Multi-arch images via buildx (pushed on publish; snapshot builds load per-arch locally).
+dockers_v2:
+  - ids:
+      - tcp-wait
+    dockerfile: Dockerfile.goreleaser
+    images:
+      - donkeyx/tcp-wait
+      - ghcr.io/donkeyx/tcp-wait
+    tags:
+      - "{{ .Version }}"
+      - "{{ .Tag }}"
+      - "{{ if not .IsSnapshot }}latest{{ end }}"
+      - "{{ .ShortCommit }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    # Keep the release job simple (no syft install required).
+    sbom: false
+    labels:
+      org.opencontainers.image.title: tcp-wait
+      org.opencontainers.image.description: Wait for TCP host:port availability
+      org.opencontainers.image.source: https://github.com/donkeyx/tcp-wait
+      org.opencontainers.image.licenses: GPL-3.0
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"

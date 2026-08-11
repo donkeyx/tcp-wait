@@ -1,12 +1,13 @@
-# # multi stage build, yo!
-FROM golang:1.18.2
-COPY . /app/
-WORKDIR /app
-RUN make deps build
-# RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o tcp-wait .
+# Local / ad-hoc image builds from source.
+# Release images are built by GoReleaser via Dockerfile.goreleaser.
+FROM golang:1.22-alpine AS builder
+WORKDIR /src
+COPY go.mod go.sum* ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -ldflags "-s -w" -o /tcp-wait ./cmd/tcp-wait
 
-# switched for potential shell
-FROM alpine:latest
-WORKDIR /app
-COPY --from=0 /app/bin/tcp-wait /app/tcp-wait
-ENTRYPOINT [ "/app/tcp-wait" ]
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates
+COPY --from=builder /tcp-wait /usr/local/bin/tcp-wait
+ENTRYPOINT ["/usr/local/bin/tcp-wait"]

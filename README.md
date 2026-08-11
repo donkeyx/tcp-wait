@@ -1,121 +1,208 @@
 # tcp-wait
 
-Go package to test and wait on the availability of a TCP host and port. This is mainly used as a pre
-start script for containers which depend on other services before starting. You can run this first
-with a defined interval and die if the host:port does not become available.
+Small tool to wait on stuff being up before you start the real process. Started life as a container pre-start helper; now it’s also an importable Go package, and has a watch mode for those “is postgres back yet?” upgrade windows.
 
-Feel free to contribute, as I will allow most merges as long as they don't drastically break the usage.
+Works as:
 
-## Quickstart
+- **CLI** — `tcp-wait` in Docker / k8s / scripts
+- **Library** — `import "github.com/donkeyx/tcp-wait/v2"`
 
-Using docker:
+## What it can wait on
 
-```bash
-# simply run the docker run command and you will be good to go immediately
-$ docker run -it donkeyx/tcp-wait -version
-Unable to find image 'donkeyx/tcp-wait:latest' locally
-...
-Version 'docker-build'
-Git_Hash '6e567e4'
-```
+| Kind | Ready when |
+|------|------------|
+| `tcp` | port accepts a connection |
+| `http` | `GET` returns 200 (or whatever status you ask for) |
+| `redis` | `PING` gets `PONG` (not just “port is open”) |
+| `postgres` | answers a startup message (skips “starting up” / recovery noise) |
+| `file` | path exists (marker file, socket path, etc.) |
 
-Using go get:
+TCP alone lies sometimes — redis can still be `LOADING`, postgres can accept sockets while it’s not ready. The redis/postgres checks speak just enough protocol that you don’t need `go-redis` / `pgx` hanging off this thing.
 
-```bash
-# get the package
-go get github.com/donkeyx/tcp-wait
+**License is GPL-3.0.** If you import the library, that has the usual GPL implications for your binary. Fine for my use; just don’t be surprised.
 
-# add go bin path to your startup shell, bash in this case
-echo 'export PATH="~/go/bin:$PATH"' >> ~/.bashrc
+## Install
 
-# quick run from there like this. If either fails it will return error code and messages to match
-tcp-wait -hp localhost:8080,localhost:9090 -t 5
-
-# for help just run with no flags
-tcp-wait -h
-Usage of /Users/dbinney/go/bin/tcp-wait:
-  -hp value
-    	<host:port> [host2:port,...] comma seperated list of host:ports
-  -o string
-    	output in format json/text (default "json")
-  -t int
-    	timeout (default 20)
-  -version
-    	version information
-...
-```
-
-## Usage
+This is **v2** (library + probes + watch). Module path has the `/v2` suffix — that’s normal Go for majors.
 
 ```bash
-### simple (success)
-$ ./bin/tcp-wait -hp github.com:80
-{"level":"info","msg":"services are ready!","services":["github.com:80"],"time":"2020-03-12T17:18:30+10:30"}
+# docker (image name unchanged)
+docker run --rm donkeyx/tcp-wait:latest -version
+docker run --rm ghcr.io/donkeyx/tcp-wait:latest -version
 
-### multiple hosts with timeout(1sec) and text as the output
-$ ./bin/tcp-wait -hp github.com:443,google.com:443 -t 1 -o text
-INFO[2020-03-12T17:20:15+10:30] services are ready!  services="[github.com:443 google.com:443]"
+# go (note: cmd path — root is the library now)
+go install github.com/donkeyx/tcp-wait/v2/cmd/tcp-wait@latest
 
-### multiple hosts with timeout(2sec) and fail condition on one host:port
-$ ./bin/tcp-wait -hp github.com:443,localhost:10000 -t 2
-{"level":"warning","msg":"tcp ping failed","tcp-host":"localhost:10000","time":"2020-03-12T17:26:16+10:30"}
-{"level":"warning","msg":"tcp ping failed","tcp-host":"localhost:10000","time":"2020-03-12T17:26:17+10:30"}
-{"level":"error","msg":"services did not respond","time":"2020-03-12T17:26:18+10:30"}
+# or grab a release binary
+# https://github.com/donkeyx/tcp-wait/releases
 ```
 
-## Building locally
-
-You can just clone down the repo, then use the make file to build the packages. They will be placed
-in a local bin folder, with linux/mac and a local env build. You can execute them directly from that
-path.
+Library:
 
 ```bash
-# build and run using make all
-$ make all
-go get
-go test -v ./...
-=== RUN   TestSuccessSingle
---- PASS: TestSuccessSingle (0.01s)
-=== RUN   TestFailureDouble
-{"level":"warning","msg":"tcp ping failed","tcp-host":"nowhere:50","time":"2020-03-13T11:38:45+10:30"}
-{"level":"warning","msg":"tcp ping failed","tcp-host":"nowhere:51","time":"2020-03-13T11:38:45+10:30"}
---- PASS: TestFailureDouble (0.50s)
-PASS
-ok      tcp-wait        (cached)
-go build -o ./bin/tcp-wait -v
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/linux/tcp-wait -v
-tcp-wait
-CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o bin/mac/tcp-wait -v
-tcp-wait
-
-# structure created with binaries in your local bin directory.
-$ tree
-├── Dockerfile
-├── LICENSE
-├── Makefile
-├── README.md
-├── bin
-│   ├── tcp-wait
-│   ├── tcp-wait.darwin.amd64
-│   ├── tcp-wait.linux.amd64
-│   └── tcp-wait.windows.amd64
-├── go.mod
-├── go.sum
-├── main.go
-├── main_test.go
-└── tmp
-    └── test-coverage
-        ├── coverage.html
-        └── coverage.out.
-
-
-# Binary should be imediately executable
-$ ./bin/tcp-wait
-Usage of ./bin/tcp-wait:
-  -hp value
-        <host:port> [host2:port,...] comma seperated list of services
-  -o string
-        output in format json/text (default "json")
-  -t int
-        timeout (default 20)
+go get github.com/donkeyx/tcp-wait/v2@latest
 ```
+
+v1 was CLI-only at the module root (`go install github.com/donkeyx/tcp-wait@v1.0.2` still works if you need the old binary).
+
+## CLI
+
+```bash
+# basic tcp (-hp is the old flag, still works; -tcp is the same thing)
+tcp-wait -hp github.com:443
+tcp-wait -tcp db:5432,cache:6379 -t 60
+
+# http readiness
+tcp-wait -http http://api:8080/readyz -t 30
+
+# actually talk redis / postgres
+tcp-wait -redis cache:6379 -postgres db:5432 -t 60
+
+# wait for a file someone else writes
+tcp-wait -file /var/run/app.ready -t 30
+
+# wait, then exec your app (handy as a container entrypoint)
+tcp-wait -tcp db:5432 -http http://api:8080/readyz \
+  -t 60 -dial 2s -interval 500ms \
+  -- /app/server --config /config.yaml
+```
+
+### Watch mode (the upgrade / firewall thing)
+
+Normal mode exits as soon as everything is green. Watch mode keeps poking and only logs **changes** — up, down, or a **blip** (was up, now down). Super useful when you’re bouncing postgres/redis or waiting for a security group to actually open.
+
+```bash
+# sit on it until Ctrl-C (-t 0 = no time limit)
+tcp-wait -watch -postgres db:5432 -redis cache:6379 -t 0 -interval 500ms -o text
+
+# or cap the window (e.g. firewall change)
+tcp-wait -w -tcp $HOST:5432 -t 600 -interval 1s -o text
+```
+
+You’ll see something like:
+
+```text
+level=INFO msg="check up" check=postgres://db:5432
+level=WARN msg="check blip" check=postgres://db:5432 err="..."
+level=INFO msg="check up" check=postgres://db:5432
+level=INFO msg="watch stopped" status="all up" reason=signal
+```
+
+`check blip` = it was good, then it wasn’t. That’s the hole during the upgrade.
+
+### Flags
+
+| Flag | Default | Notes |
+|------|---------|--------|
+| `-hp` / `-tcp` | | `host:port,...` TCP |
+| `-http` | | URLs, GET, expect 200 |
+| `-redis` | | `host:port,...` PING |
+| `-postgres` | | `host:port,...` startup probe |
+| `-file` | | paths that must exist |
+| `-t` | `20` | overall timeout seconds; **`0` = no limit** |
+| `-dial` | `1s` | per-attempt timeout |
+| `-interval` | `1s` | sleep between attempts |
+| `-o` | `json` | `json` or `text` |
+| `-q` | off | errors only (skip this for watch — you’ll hide the interesting lines) |
+| `-w` / `-watch` | off | continuous up/down/blip logging |
+| `-version` | | version + git hash |
+| `-- cmd…` | | after wait succeeds, `exec` the command (don’t mix with `-watch`) |
+
+**Logs:** `-o json` (default, fine for k8s/loki) or `-o text` (nicer in a terminal).
+
+**Exits:**
+
+- wait: `0` ready, `1` timeout / bad flags, `130` if you Ctrl-C
+- watch: `0` on Ctrl-C, or on timeout if everything’s up; `1` if the timer runs out still degraded
+
+### k8s initContainer
+
+```yaml
+initContainers:
+  - name: wait-deps
+    image: donkeyx/tcp-wait:latest
+    args: ["-postgres", "db:5432", "-redis", "cache:6379", "-t", "120", "-o", "text"]
+```
+
+### compose / entrypoint wrap
+
+```yaml
+command: ["tcp-wait", "-tcp", "db:5432", "-t", "60", "--", "/app/server"]
+```
+
+## Library
+
+```go
+package main
+
+import (
+	"context"
+	"errors"
+	"log"
+	"time"
+
+	tcpwait "github.com/donkeyx/tcp-wait/v2"
+)
+
+func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err := tcpwait.Wait(ctx, []tcpwait.Check{
+		tcpwait.TCP("db:5432"),
+		tcpwait.Redis("cache:6379"),
+		tcpwait.Postgres("db:5432"),
+		tcpwait.HTTP("http://api:8080/readyz"),
+		tcpwait.File("/var/run/app.ready"),
+	})
+	if err != nil {
+		// errors.Is(err, tcpwait.ErrTimeout) — message lists who never came up
+		log.Fatal(err)
+	}
+
+	// knobs if you need them
+	_ = tcpwait.WaitWithOptions(ctx, []tcpwait.Check{tcpwait.TCP("db:5432")}, tcpwait.Options{
+		DialTimeout: time.Second,
+		Interval:    500 * time.Millisecond,
+	})
+
+	// watch until ctx is done (timeout / cancel)
+	res, _ := tcpwait.WatchWithOptions(ctx, []tcpwait.Check{
+		tcpwait.Postgres("db:5432"),
+		tcpwait.Redis("cache:6379"),
+	}, tcpwait.Options{Interval: 500 * time.Millisecond})
+	if !res.AllUp() {
+		log.Printf("still down: %v", res.Down())
+	}
+}
+```
+
+TCP-only shortcut: `tcpwait.WaitTCP(ctx, []string{"db:5432", "redis:6379"})`.
+
+Docs on [pkg.go.dev](https://pkg.go.dev/github.com/donkeyx/tcp-wait/v2) after you install a tagged version (`go doc .` works locally either way).
+
+## Develop
+
+```bash
+go test -race ./...
+go build -o bin/tcp-wait ./cmd/tcp-wait
+
+make test
+make build
+```
+
+Releases are **GoReleaser** on `v*` tags — multi-arch binaries plus images on Docker Hub (`donkeyx/tcp-wait`) and GHCR (`ghcr.io/donkeyx/tcp-wait`).
+
+```bash
+goreleaser check
+make snapshot   # needs docker + goreleaser installed
+
+git tag v2.0.0
+git push origin v2.0.0
+```
+
+Needs `DOCKERHUB_USER` / `DOCKERHUB_PASS` on the `deployment` environment for Hub; GHCR uses the default `GITHUB_TOKEN`.
+
+## License
+
+GPL-3.0 — see [LICENSE](LICENSE).

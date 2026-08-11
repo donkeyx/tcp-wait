@@ -1,44 +1,34 @@
-# Go parameters
-BINARY_PATH = ./bin/linux/
 BINARY_NAME = tcp-wait
-VERSION ='$(shell git describe --tags)'
-VERSION ='$(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match)'
-BUILD_DATE='$(shell date)'
-HASH = '$(shell git rev-parse --short HEAD)'
-BUILD_FLAGS = go build -ldflags "-w -s -X main.Version=$(VERSION) -X main.GitHash=$(HASH)"
+VERSION     = $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+HASH        = $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
+LDFLAGS     = -ldflags "-s -w -X main.Version=$(VERSION) -X main.GitHash=$(HASH)"
+MAIN_PKG    = ./cmd/tcp-wait
 
+.PHONY: all build test clean tidy snapshot release-dry-run docker-build
 
-all: clean deps test build-all
+all: tidy test build
+
 build:
-	CGO_ENABLED=0 $(BUILD_FLAGS) -o bin/$(BINARY_NAME) -v
-	# CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o tcp-wait .
+	CGO_ENABLED=0 go build $(LDFLAGS) -o bin/$(BINARY_NAME) $(MAIN_PKG)
+
 test:
-	go test
+	go test -race -count=1 ./...
 
-	mkdir -p tmp/test-coverage
-	go test -coverprofile=tmp/test-coverage/coverage.out
-	go tool cover -html=tmp/test-coverage/coverage.out -o ./tmp/test-coverage/coverage.html
-clean:
-	go clean
-	find ./bin/ -type f | grep -v keep | xargs rm
-
-deps:
-	go get .
-
-update:
-	go get ./...
+tidy:
 	go mod tidy
 
-# Cross compilation
-build-all:
-	$(info    version is $(VERSION))
-	$(info    build_date is $(BUILD_DATE))
-	$(info    ld-flags is $(BUILD_FLAGS))
+clean:
+	go clean
+	rm -rf bin/ dist/
 
-	CGO_ENABLED=0 GOARCH=386   GOOS=windows  $(BUILD_FLAGS) -o bin/$(BINARY_NAME).windows.amd64 -v
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux  $(BUILD_FLAGS) -o bin/$(BINARY_NAME).linux.amd64 -v
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin  $(BUILD_FLAGS) -o bin/$(BINARY_NAME).darwin.amd64 -v
-	CGO_ENABLED=0 GOARCH=arm64 GOOS=android $(BUILD_FLAGS) -o bin/$(BINARY_NAME).arm64 -v
-
+# Local multi-stage image from source (not the release path).
 docker-build:
-	docker build . -t tcp-wait
+	docker build -t $(BINARY_NAME):local .
+
+# GoReleaser snapshot (binaries + local docker load). Needs goreleaser + docker.
+snapshot:
+	goreleaser release --snapshot --clean
+
+# Validate config / build without publishing.
+release-dry-run:
+	goreleaser release --clean --skip=publish

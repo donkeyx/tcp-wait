@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Test
+        run: go test -race -count=1 -cover ./...
+
+      - name: Build
+        run: CGO_ENABLED=0 go build -o bin/tcp-wait ./cmd/tcp-wait
+
+      - name: Smoke
+        run: |
+          ./bin/tcp-wait -version
+          # unreachable should exit 1 within timeout
+          if ./bin/tcp-wait -hp 127.0.0.1:1 -t 1 -o text; then
+            echo "expected failure for unreachable host" >&2
+            exit 1
+          fi
+
+  goreleaser-check:
+    name: GoReleaser check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Check GoReleaser config
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: check --verbose
