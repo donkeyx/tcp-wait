@@ -1,6 +1,10 @@
 # Used by GoReleaser dockers_v2 — copies prebuilt binaries from the build context.
 # Context layout: linux/<arch>/tcp-wait  (see https://goreleaser.com/customization/package/dockers_v2/)
 FROM alpine:3.24
+LABEL org.opencontainers.image.source="https://github.com/donkeyx/tcp-wait"
+LABEL org.opencontainers.image.title="tcp-wait"
+LABEL org.opencontainers.image.description="Wait for network endpoints (tcp/http/redis/postgres/file)"
+LABEL maintainer="David Binney <donkeysoft@gmail.com>"
 RUN apk add --no-cache ca-certificates
 ARG TARGETPLATFORM
 COPY ${TARGETPLATFORM}/tcp-wait /usr/local/bin/tcp-wait

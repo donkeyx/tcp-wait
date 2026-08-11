@@ -4,10 +4,18 @@ on:
   push:
     tags: ["v*"]
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   packages: write
   id-token: write
+
+env:
+  DOCKERHUB_IMAGE: donkeyx/tcp-wait
+  GHCR_IMAGE: ghcr.io/donkeyx/tcp-wait
 
 jobs:
   goreleaser:
@@ -54,6 +62,15 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Same idea as cluster-utils-api — keep Hub description in sync with repo README.
+      - name: Update Docker Hub README
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PASS }}
+          repository: ${{ env.DOCKERHUB_IMAGE }}
+          readme-filepath: ./README.md
 
       # Nudge pkg.go.dev to index the new tag (public modules usually auto-index).
       - name: Notify pkg.go.dev
