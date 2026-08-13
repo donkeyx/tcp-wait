@@ -15,3 +15,6 @@
 bin/*
 tmp
 dist/
+
+# Editor-generated build/task logs
+.vscode/*.log

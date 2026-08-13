@@ -16,6 +16,13 @@ type Options struct {
 	// Logger receives per-attempt warnings and per-check ready messages.
 	// Nil discards logs.
 	Logger *slog.Logger
+	// TLS enables TLS for TCP and Redis probes, and configures HTTPS probes.
+	TLS bool
+	// TLSServerName overrides the server name used for certificate verification.
+	TLSServerName string
+	// TLSInsecureSkipVerify disables certificate verification. Use only for
+	// trusted development or private test endpoints.
+	TLSInsecureSkipVerify bool
 }
 
 func (o Options) withDefaults() Options {
