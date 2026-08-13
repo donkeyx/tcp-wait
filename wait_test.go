@@ -133,6 +133,58 @@ func TestWaitHTTPStatusCustom(t *testing.T) {
 	}
 }
 
+func TestWaitHTTPHeaders(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Readiness-Token") != "ready" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	t.Cleanup(ts.Close)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	check := HTTPStatusWithHeaders(ts.URL, http.StatusNoContent, map[string]string{
+		"X-Readiness-Token": "ready",
+	})
+	if err := Wait(ctx, []Check{check}); err != nil {
+		t.Fatalf("expected header-authenticated http ready, got %v", err)
+	}
+}
+
+func TestWaitHTTPSInsecureTLS(t *testing.T) {
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	t.Cleanup(ts.Close)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if err := WaitWithOptions(ctx, []Check{HTTPStatus(ts.URL, http.StatusNoContent)}, Options{
+		TLSInsecureSkipVerify: true,
+	}); err != nil {
+		t.Fatalf("expected insecure https probe to pass, got %v", err)
+	}
+}
+
+func TestWaitTLSTCP(t *testing.T) {
+	server := httptest.NewTLSServer(nil)
+	t.Cleanup(server.Close)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if err := WaitWithOptions(ctx, []Check{TCP(server.Listener.Addr().String())}, Options{
+		TLS:                   true,
+		TLSInsecureSkipVerify: true,
+	}); err != nil {
+		t.Fatalf("expected TLS TCP probe to pass, got %v", err)
+	}
+}
+
 func TestWaitRedis(t *testing.T) {
 	// Fake Redis: read PING, write +PONG
 	ln, err := net.Listen("tcp", "127.0.0.1:0")

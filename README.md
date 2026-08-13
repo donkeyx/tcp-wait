@@ -75,6 +75,13 @@ tcp-wait -tcp db:5432,cache:6379 -t 60
 # http readiness
 tcp-wait -http http://api:8080/readyz -t 30
 
+# expected status and repeatable request headers
+tcp-wait -http https://api:8443/readyz -http-status 204 \
+  -http-header 'Authorization: Bearer token' -t 30
+
+# TLS TCP/Redis probes; certificate verification remains enabled by default
+tcp-wait -tls -tcp db:5432 -redis cache:6379 -t 60
+
 # actually talk redis / postgres
 tcp-wait -redis cache:6379 -postgres db:5432 -t 60
 
@@ -116,6 +123,8 @@ level=INFO msg="watch stopped" status="all up" reason=signal
 |------|---------|--------|
 | `-hp` / `-tcp` | | `host:port,...` TCP |
 | `-http` | | URLs, GET, expect 200 |
+| `-http-status` | `200` | expected status for every `-http` URL |
+| `-http-header` | | repeatable `Name: value` request header |
 | `-redis` | | `host:port,...` PING |
 | `-postgres` | | `host:port,...` startup probe |
 | `-file` | | paths that must exist |
@@ -125,10 +134,13 @@ level=INFO msg="watch stopped" status="all up" reason=signal
 | `-o` | `json` | `json` or `text` |
 | `-q` | off | errors only (skip this for watch — you’ll hide the interesting lines) |
 | `-w` / `-watch` | off | continuous up/down/blip logging |
+| `-tls` | off | TLS for TCP/Redis; configure HTTPS TLS settings |
+| `-tls-server-name` | | TLS certificate server-name override |
+| `-tls-insecure-skip-verify` | off | disable TLS certificate verification; development only |
 | `-version` | | version + git hash |
 | `-- cmd…` | | after wait succeeds, `exec` the command (don’t mix with `-watch`) |
 
-**Logs:** `-o json` (default, fine for k8s/loki) or `-o text` (nicer in a terminal).
+**Logs:** `-o json` (default, fine for k8s/loki) or `-o text` (nicer in a terminal). Final wait results include `status` (`ready`, `timeout`, or `error`) and `checks` fields for machine consumers.
 
 **Exits:**
 

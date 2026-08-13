@@ -58,13 +58,30 @@ func splitCSV(s string) []string {
 	return out
 }
 
-func buildChecks(tcpList, httpList, redisList, pgList, fileList string) ([]tcpwait.Check, error) {
+type headerFlags map[string]string
+
+func (h *headerFlags) String() string { return "" }
+
+func (h *headerFlags) Set(value string) error {
+	name, headerValue, ok := strings.Cut(value, ":")
+	name = strings.TrimSpace(name)
+	if !ok || name == "" {
+		return fmt.Errorf("HTTP header must use 'Name: value' format")
+	}
+	if *h == nil {
+		*h = make(headerFlags)
+	}
+	(*h)[name] = strings.TrimSpace(headerValue)
+	return nil
+}
+
+func buildChecks(tcpList, httpList string, httpStatus int, httpHeaders map[string]string, redisList, pgList, fileList string) ([]tcpwait.Check, error) {
 	var checks []tcpwait.Check
 	for _, a := range splitCSV(tcpList) {
 		checks = append(checks, tcpwait.TCP(a))
 	}
 	for _, u := range splitCSV(httpList) {
-		checks = append(checks, tcpwait.HTTP(u))
+		checks = append(checks, tcpwait.HTTPStatusWithHeaders(u, httpStatus, httpHeaders))
 	}
 	for _, a := range splitCSV(redisList) {
 		checks = append(checks, tcpwait.Redis(a))
@@ -128,6 +145,11 @@ func main() {
 		timeout        int
 		dial           time.Duration
 		interval       time.Duration
+		httpStatus     int
+		httpHeaders    headerFlags
+		tlsEnabled     bool
+		tlsServerName  string
+		tlsInsecure    bool
 		displayVersion bool
 		output         string
 		quiet          bool
@@ -141,6 +163,8 @@ func main() {
 	flag.StringVar(&tcpHosts, "hp", "", "comma-separated host:port list (TCP); alias of -tcp")
 	flag.StringVar(&tcpHosts, "tcp", "", "comma-separated host:port list (TCP)")
 	flag.StringVar(&httpURLs, "http", "", "comma-separated HTTP(S) URLs (GET, expect 200)")
+	flag.IntVar(&httpStatus, "http-status", 200, "expected HTTP status for all -http URLs")
+	flag.Var(&httpHeaders, "http-header", "HTTP request header (repeatable, Name: value)")
 	flag.StringVar(&redisHosts, "redis", "", "comma-separated host:port list (Redis PING)")
 	flag.StringVar(&postgresHosts, "postgres", "", "comma-separated host:port list (Postgres startup probe)")
 	flag.StringVar(&filePaths, "file", "", "comma-separated filesystem paths that must exist")
@@ -148,6 +172,9 @@ func main() {
 	flag.BoolVar(&quiet, "q", false, "quiet: only log errors")
 	flag.BoolVar(&watch, "watch", false, "watch mode: log up/down/blip transitions until timeout or signal")
 	flag.BoolVar(&watch, "w", false, "short for -watch")
+	flag.BoolVar(&tlsEnabled, "tls", false, "use TLS for TCP/Redis probes and configure HTTPS verification")
+	flag.StringVar(&tlsServerName, "tls-server-name", "", "TLS server name override")
+	flag.BoolVar(&tlsInsecure, "tls-insecure-skip-verify", false, "disable TLS certificate verification")
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [flags] [--] [command [args...]]\n\n", os.Args[0])
 		fmt.Fprintf(flag.CommandLine.Output(), "Wait until checks pass, or -watch for continuous up/down/blip logging.\n\n")
@@ -173,7 +200,7 @@ Examples:
 		os.Exit(0)
 	}
 
-	checks, err := buildChecks(tcpHosts, httpURLs, redisHosts, postgresHosts, filePaths)
+	checks, err := buildChecks(tcpHosts, httpURLs, httpStatus, httpHeaders, redisHosts, postgresHosts, filePaths)
 	if err != nil {
 		flag.Usage()
 		os.Exit(1)
@@ -189,9 +216,12 @@ Examples:
 	defer cancel()
 
 	opts := tcpwait.Options{
-		DialTimeout: dial,
-		Interval:    interval,
-		Logger:      log,
+		DialTimeout:           dial,
+		Interval:              interval,
+		Logger:                log,
+		TLS:                   tlsEnabled,
+		TLSServerName:         tlsServerName,
+		TLSInsecureSkipVerify: tlsInsecure,
 	}
 
 	if watch {
@@ -201,24 +231,22 @@ Examples:
 
 	if err := tcpwait.WaitWithOptions(ctx, checks, opts); err != nil {
 		cancel()
+		labels := checkLabels(checks)
 		switch {
 		case errors.Is(err, context.Canceled):
 			log.Error("interrupted")
 			os.Exit(130)
 		case errors.Is(err, tcpwait.ErrTimeout):
-			log.Error(err.Error())
+			log.Error(err.Error(), "status", "timeout", "checks", labels)
 			os.Exit(1)
 		default:
-			log.Error(err.Error())
+			log.Error(err.Error(), "status", "error", "checks", labels)
 			os.Exit(1)
 		}
 	}
 
-	labels := make([]string, len(checks))
-	for i, c := range checks {
-		labels[i] = c.String()
-	}
-	log.Info("services are ready!", "services", labels)
+	labels := checkLabels(checks)
+	log.Info("services are ready!", "status", "ready", "checks", labels)
 
 	if len(cmd) == 0 {
 		os.Exit(0)
@@ -228,6 +256,14 @@ Examples:
 		log.Error("exec failed", "err", err.Error())
 		os.Exit(1)
 	}
+}
+
+func checkLabels(checks []tcpwait.Check) []string {
+	labels := make([]string, len(checks))
+	for i, c := range checks {
+		labels[i] = c.String()
+	}
+	return labels
 }
 
 func runWatch(ctx context.Context, cancel context.CancelFunc, checks []tcpwait.Check, opts tcpwait.Options, log *slog.Logger) {

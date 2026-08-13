@@ -10,7 +10,7 @@
 // Supported probe kinds (prefer constructors over filling [Check] by hand):
 //
 //   - [TCP] — host:port accepts a connection
-//   - [HTTP] / [HTTPStatus] — GET returns an expected status (default 200)
+//   - [HTTP] / [HTTPStatus] / [HTTPWithHeaders] — GET returns an expected status (default 200)
 //   - [Redis] — RESP PING → PONG
 //   - [Postgres] — StartupMessage answered (auth or non-startup error)
 //   - [File] — filesystem path exists

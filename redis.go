@@ -10,15 +10,15 @@ import (
 )
 
 // probeRedis sends PING and expects a PONG (+PONG or bulk "PONG").
-func probeRedis(ctx context.Context, addr string, timeout time.Duration) error {
-	d := net.Dialer{Timeout: timeout}
-	conn, err := d.DialContext(ctx, "tcp", addr)
+func probeRedis(ctx context.Context, addr string, opts Options) error {
+	d := net.Dialer{Timeout: opts.DialTimeout}
+	conn, err := dialProbe(ctx, &d, addr, opts)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().Add(opts.DialTimeout)
 	if err := conn.SetDeadline(deadline); err != nil {
 		return err
 	}
